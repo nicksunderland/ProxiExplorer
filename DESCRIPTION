@@ -6,10 +6,21 @@ Description: An interactive explorer for the creation of genetically proxied dru
 License: MIT + file LICENSE
 Imports: 
     config (>= 0.3.2),
+    data.table,
+    ggplot2,
     golem (>= 0.4.1),
-    shiny (>= 1.7.5.1)
+    shiny (>= 1.7.5.1),
+    shinyjs,
+    shinyWidgets,
+    genepi.utils,
+    forcats,
+    ggrepel,
+    viridis,
+    pkgload
+Remotes:
+    nicksunderland/genepi.utils
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 URL: https://github.com/nicksunderland/ProxiExplorer
 BugReports: https://github.com/nicksunderland/ProxiExplorer/issues

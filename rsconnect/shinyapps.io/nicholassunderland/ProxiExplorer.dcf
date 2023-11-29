@@ -1,0 +1,10 @@
+name: ProxiExplorer
+title: ProxiExplorer
+username: nicholassunderland
+account: nicholassunderland
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10656338
+bundleId:
+url: https://nicholassunderland.shinyapps.io/ProxiExplorer/
+version: 1

@@ -1,0 +1,26 @@
+PLINK v2.00a6 M1 (23 Nov 2023)
+Options in effect:
+  --chr 6
+  --from-kb 38500
+  --make-pgen
+  --out glp1r
+  --pfile all_phase3_nodup
+  --to-kb 39600
+
+Hostname: K3P0KGKVKT
+Working directory: /Users/xx20081/Documents/local_data/genome_reference/ref_1000GP_phase3_plink
+Start time: Tue Nov 28 22:52:27 2023
+
+Random number seed: 1701211947
+98304 MiB RAM detected; reserving 49152 MiB for main workspace.
+Using up to 12 threads (change this with --threads).
+2504 samples (1270 females, 1234 males; 2497 founders) loaded from
+all_phase3_nodup.psam.
+2921130 out of 48493710 variants loaded from all_phase3_nodup.pvar.
+2 categorical phenotypes loaded.
+19421 variants remaining after main filters.
+Writing glp1r.psam ... done.
+Writing glp1r.pvar ... done.
+Writing glp1r.pgen ... done.
+
+End time: Tue Nov 28 22:52:30 2023
