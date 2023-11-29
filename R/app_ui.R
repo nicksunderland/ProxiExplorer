@@ -117,12 +117,31 @@ app_ui <- function(request) {
                                  )
                                )
                     ), # sidebar panel end
-                    mainPanel(p(strong("Locus plot:")),
-                              width = 9,
+                    mainPanel(width = 9,
+                              # Exposure locus zoom plot
+                              p(strong("Locus plot:")),
                               plotOutput(outputId = "locus_plot",
                                          height   = "400px"),
+                              # Clump analysis
                               p(strong("Clumps:")),
                               plotOutput(outputId = "clumps_plot",
+                                         height   = "400px"),
+                              # QTL plot
+                              fluidRow(
+                                column(2, selectInput(inputId  = "qtl_source",
+                                                      label    = "QTL data:",
+                                                      choices  = c("None", "GTEx_v8"),
+                                                      selected = "None")),
+                                column(2, selectInput(inputId  = "qtl_tissue",
+                                                      label    = "Tissue:",
+                                                      choices  = c("All"),
+                                                      selected = "All"))
+                              ),
+                              plotOutput(outputId = "qtl_plot",
+                                         height   = "400px"),
+                              # MR plot
+                              p(strong("Mendelian Randomisation:")),
+                              plotOutput(outputId = "mr_plot",
                                          height   = "400px")
                     ) # main panel end
       ) # sidebar layout end

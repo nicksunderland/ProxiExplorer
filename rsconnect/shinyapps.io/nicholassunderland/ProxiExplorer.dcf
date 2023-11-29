@@ -5,6 +5,8 @@ account: nicholassunderland
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10656338
-bundleId:
+bundleId: 7984426
 url: https://nicholassunderland.shinyapps.io/ProxiExplorer/
 version: 1
+asMultiple: FALSE
+asStatic: FALSE
