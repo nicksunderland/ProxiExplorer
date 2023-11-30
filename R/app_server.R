@@ -9,7 +9,7 @@ P_exposure <- RSID_exposure <- SE_exposure <- SE_outcome <- index <- RSID <- NUL
 #'
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
-#' @import shiny ggplot2 ggrepel data.table genepi.utils
+#' @import shiny shinyWidgets ggplot2 ggrepel data.table genepi.utils
 #' @importFrom shinyjs disable enable
 #' @importFrom stats runif
 #' @importFrom forcats fct_rev
@@ -219,6 +219,7 @@ app_server <- function(input, output, session) {
 
   # observing the data input select box
   observeEvent(input$data_input, {
+
     if(input$data_input == "Custom input") {
 
       # set random data, activate file input and wait for input data
@@ -233,15 +234,18 @@ app_server <- function(input, output, session) {
       shinyjs::disable(id="exposure_file")
       shinyjs::disable(id="outcome_file")
 
-      # assess which option was chosen
-      if(input$data_input == "GLP1R - HbA1c vs. HF") {
-
-        exposure_filepath(system.file("extdata", "hba1c_jurgens_2022_gwas.tsv.gz", package="ProxiExplorer"))
-        outcome_filepath(system.file("extdata", "heartfailure_shah_2020_gwas.tsv.gz", package="ProxiExplorer"))
-        pfile(sub(".pgen", "", system.file("extdata", "glp1r.pgen", package="ProxiExplorer")))
-
-      }
-      # other options
+      # get & set the defaults
+      exposure_filepath(     system.file("extdata", DRUG_PROXIES[[input$data_input]]$exposure_file, package="ProxiExplorer"))
+      outcome_filepath(      system.file("extdata", DRUG_PROXIES[[input$data_input]]$outcome_file,  package="ProxiExplorer"))
+      pfile(sub(".pgen", "", system.file("extdata", DRUG_PROXIES[[input$data_input]]$pfile,         package="ProxiExplorer")))
+      updateSelectInput(session,     inputId = "gene_chr",       selected = DRUG_PROXIES[[input$data_input]]$gene_chr)
+      updateNumericInput(session,    inputId = "gene_flanks_kb", value    = DRUG_PROXIES[[input$data_input]]$gene_flanks_kb)
+      updateNumericInput(session,    inputId = "gene_start",     value    = DRUG_PROXIES[[input$data_input]]$gene_start)
+      updateNumericInput(session,    inputId = "gene_end",       value    = DRUG_PROXIES[[input$data_input]]$gene_end)
+      updateSliderTextInput(session, inputId = "clump_p1",       selected = DRUG_PROXIES[[input$data_input]]$clump_p1)
+      updateSliderTextInput(session, inputId = "clump_p2",       selected = DRUG_PROXIES[[input$data_input]]$clump_p2)
+      updateSliderTextInput(session, inputId = "clump_r2",       selected = DRUG_PROXIES[[input$data_input]]$clump_r2)
+      updateSliderTextInput(session, inputId = "clump_kb",       selected = DRUG_PROXIES[[input$data_input]]$clump_kb)
 
     }
   })

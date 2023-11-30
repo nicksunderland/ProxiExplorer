@@ -7,6 +7,8 @@
 Proxy(
   drug_name,
   gene_name,
+  exposure_name,
+  exposure_file,
   gene_chr,
   gene_start,
   gene_end,
@@ -14,7 +16,13 @@ Proxy(
   clump_p1,
   clump_p2,
   clump_r2,
-  clump_kb
+  clump_kb,
+  pfile,
+  outcome_name = NULL,
+  outcome_file = NULL,
+  qtl_name = NULL,
+  qtl_file = NULL,
+  proxy_id = NULL
 )
 }
 \arguments{

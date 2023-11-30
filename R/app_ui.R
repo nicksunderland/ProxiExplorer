@@ -30,8 +30,8 @@ app_ui <- function(request) {
                                fluidRow(
                                  column(12, selectInput(inputId  = "data_input",
                                                         label    = "Data input:",
-                                                        choices  = c("GLP1R - HbA1c vs. HF", "Custom input"),
-                                                        selected = "GLP1R - HbA1c vs. HF"))
+                                                        choices  = c(sapply(DRUG_PROXIES, function(x) x$proxy_id), "Custom input"),
+                                                        selected = "GLP1R - Heart failure incidence"))
                                ),
                                fluidRow(
                                  column(6, fileInput(inputId = "exposure_file",
@@ -53,7 +53,7 @@ app_ui <- function(request) {
                                  column(6, selectInput(inputId  = "gene_chr",
                                                        label    = "Chrom:",
                                                        choices  = c(as.character(1:22),"X"),
-                                                       selected = "6")),
+                                                       selected = "1")),
                                  column(6, numericInput(inputId = "gene_flanks_kb",
                                                         label   = "Flanks (kb):",
                                                         value   = 250,
