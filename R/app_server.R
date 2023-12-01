@@ -150,7 +150,14 @@ app_server <- function(input, output, session) {
 
     # just with QTLs? or all the instrument SNPs?
     if(input$mr_with_qtls && !is.null(qtl_dat())) {
-      snps <- iv$RSID[iv$RSID %in% qtl_dat()$RSID_b37 & iv$RSID %in% outcome_dat()$RSID]
+
+      # filter data if requested
+      if(any(input$qtl_tissue=="All")) {
+        d <- qtl_dat()
+      }else{
+        d <- qtl_dat()[tissue %in% input$qtl_tissue, ]
+      }
+      snps <- iv$RSID[iv$RSID %in% d$RSID_b37 & iv$RSID %in% outcome_dat()$RSID]
     } else {
       snps <- iv$RSID
     }
