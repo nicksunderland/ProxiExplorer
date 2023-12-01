@@ -62,7 +62,7 @@ Proxy <- function(drug_name,
 
 # curate a list of defaults here
 DRUG_PROXIES <- list(
-  Proxy(proxy_id      = "GLP1R - Heart failure incidence",
+  Proxy(proxy_id      = "Exp: GLP1R/HbA1c, Out: Heart failure incidence",
         drug_name     = "incretins",
         gene_name     = "GLP1R",
         exposure_name = "GLP1R/HbA1c (Jurgens, 2022)",
