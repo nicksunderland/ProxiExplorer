@@ -4,7 +4,7 @@
 # silence R CMD checks
 BETA_exposure <- BETA_outcome <- BP <- BP_exposure <- CHR <- P <- P_cat <- NULL
 P_exposure <- RSID_exposure <- SE_exposure <- SE_outcome <- index <- RSID <- NULL
-tissue <- BP_b37 <- i.P <- x <- y <- NULL
+tissue <- BP_b37 <- i.P <- x <- y <- RSID_outcome <- pheno <- NULL
 
 #' The application server-side
 #'
@@ -31,6 +31,8 @@ app_server <- function(input, output, session) {
   outcome_dat       <- reactiveVal(NULL)
   clumped_dat       <- reactiveVal(NULL)
   harmonised_dat    <- reactiveVal(NULL)
+  tsmr_harm         <- reactiveVal(NULL)
+  tsmr_res          <- reactiveVal(NULL)
   qtl_dat           <- reactiveVal(NULL)
   genes_dat         <- reactiveVal(NULL)
 
@@ -94,7 +96,6 @@ app_server <- function(input, output, session) {
       stop("operating system error")
     }
 
-
     # give the plink2 executable permission to run
     Sys.chmod(plink2, "777", use_umask = FALSE)
     # get the reference file
@@ -134,6 +135,63 @@ app_server <- function(input, output, session) {
     # TODO: document
   })
 
+  # observe the run MR button
+  observeEvent(input$run_mr, {
+
+    # check if needed data present
+    validate(
+      need(!is.null(clumped_dat()) && !is.null(outcome_dat()),  'No clumped exposure data, and/or, no outcome data, click the import and clump buttons')
+    )
+
+    # get instrument
+    exposure_name <- DRUG_PROXIES[[input$data_input]]$exposure_name
+    outcome_name  <- DRUG_PROXIES[[input$data_input]]$outcome_name
+    iv <- clumped_dat()[index==TRUE, ][, pheno := list(exposure_name)]
+
+    # just with QTLs? or all the instrument SNPs?
+    if(input$mr_with_qtls && !is.null(qtl_dat())) {
+      snps <- iv$RSID[iv$RSID %in% qtl_dat()$RSID_b37 & iv$RSID %in% outcome_dat()$RSID]
+    } else {
+      snps <- iv$RSID
+    }
+
+    exp <- TwoSampleMR::format_data(dat = iv |> as.data.frame(),
+                                    type = "exposure",
+                                    snps = snps,
+                                    phenotype_col = "pheno",
+                                    snp_col = "RSID",
+                                    beta_col = "BETA",
+                                    se_col = "SE",
+                                    eaf_col = "EAF",
+                                    effect_allele_col = "EA",
+                                    other_allele_col = "OA",
+                                    pval_col = "P",
+                                    id_col = "pheno",
+                                    chr_col = "CHR",
+                                    pos_col = "BP")
+
+    out <- TwoSampleMR::format_data(dat = outcome_dat()[, pheno := outcome_name]  |> as.data.frame(),
+                                    type = "outcome",
+                                    snps = snps,
+                                    phenotype_col = "pheno",
+                                    snp_col = "RSID",
+                                    beta_col = "BETA",
+                                    se_col = "SE",
+                                    eaf_col = "EAF",
+                                    effect_allele_col = "EA",
+                                    other_allele_col = "OA",
+                                    pval_col = "P",
+                                    id_col = "pheno",
+                                    chr_col = "CHR",
+                                    pos_col = "BP")
+
+    h   <- TwoSampleMR::harmonise_data(exp,out)
+    res <- TwoSampleMR::mr(h)
+
+    # set results
+    tsmr_harm(h)
+    tsmr_res(res)
+  })
 
 
   # the main display output
@@ -174,7 +232,7 @@ app_server <- function(input, output, session) {
 
     # check data
     validate(
-      need(!is.null(harmonised_dat()), 'No data clumped, click the clump button')
+      need(!is.null(harmonised_dat()), 'No clumped data, click the clump button')
     )
 
     # create the clumps plot
@@ -199,6 +257,9 @@ app_server <- function(input, output, session) {
 
   # plot the QTL data
   output$qtl_plot <- renderPlot({
+
+    # set MR option off if no data
+    shinyjs::toggleState(id="mr_with_qtls", !is.null(qtl_dat()))
 
     # check data
     validate(
@@ -245,26 +306,58 @@ app_server <- function(input, output, session) {
 
       }
 
+      # if QTLs for exposure and outcome exist enable checkbox
+      shinyjs::toggleState(id="mr_with_qtls", nrow(qtl_hits) > 0 && any(qtl_hits$RSID %in% harmonised_dat()[index==TRUE, RSID_outcome]))
+
     }
 
     return(p1)
   })
 
-  # plot the MR
+  # plot the MR result
   output$mr_plot <- renderPlot({
 
     # check data
     validate(
-      need(FALSE, 'Next to be implemented')
+      need(!is.null(tsmr_res()) && !is.null(tsmr_harm()), 'No MR results data, ensure clumped exposure data and outcome data, then click run MR')
     )
 
-    p3 <- ggplot(data = data.frame(x=runif(10), y=runif(10)),
-           mapping = aes(x=x,y=y)) +
-      geom_point() +
-      labs(title="TBC")
+    p   <- TwoSampleMR::mr_scatter_plot(tsmr_res(), tsmr_harm())[[1]] +
+      theme_classic()
 
-    return(p3)
+    return(p)
   })
+
+  # plot the MR result table
+  output$mr_result <- renderTable({
+
+    # check data
+    validate(
+      need(!is.null(tsmr_res()), '')
+    )
+
+    res <- tsmr_res()
+    res$id.exposure <- NULL
+    res$id.outcome  <- NULL
+
+    return(res)
+  })
+
+  # plot the MR egger result table
+  output$mr_egg_result <- renderTable({
+
+    # check data
+    validate(
+      need(!is.null(tsmr_harm()), '')
+    )
+
+    egg <- TwoSampleMR::mr_pleiotropy_test(tsmr_harm())
+    egg$id.exposure <- NULL
+    egg$id.outcome  <- NULL
+
+    return(egg)
+  })
+
 
   # observing the data input select box
   observeEvent(input$data_input, {

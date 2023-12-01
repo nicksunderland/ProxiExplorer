@@ -18,9 +18,11 @@ Imports:
     viridis,
     pkgload,
     R.utils,
-    utils
+    utils,
+    TwoSampleMR
 Remotes:
-    https://github.com/nicksunderland/genepi.utils
+    https://github.com/nicksunderland/genepi.utils,
+    https://github.com/MRCIEU/TwoSampleMR
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3

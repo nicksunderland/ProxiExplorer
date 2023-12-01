@@ -11,6 +11,14 @@
 #' @param clump_p2 .
 #' @param clump_r2 .
 #' @param clump_kb .
+#' @param exposure_name .
+#' @param exposure_file .
+#' @param pfile .
+#' @param outcome_name .
+#' @param outcome_file .
+#' @param qtls .
+#' @param genes_file .
+#' @param proxy_id .
 #'
 #' @return a Proxy S3 object
 #' @export

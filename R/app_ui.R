@@ -115,6 +115,12 @@ app_ui <- function(request) {
                                                                inline       = TRUE,
                                                                animation    = "smooth")
                                  )
+                               ),
+                               fluidRow(
+                                 column(6, actionButton(inputId = "run_mr",
+                                                        label   = "Run MR")),
+                                 column(6, checkboxInput(inputId = "mr_with_qtls",
+                                                         label   = "Only with QTLs?"))
                                )
                     ), # sidebar panel end
                     mainPanel(width = 9,
@@ -144,7 +150,9 @@ app_ui <- function(request) {
                               # MR plot
                               p(strong("Mendelian Randomisation:")),
                               plotOutput(outputId = "mr_plot",
-                                         height   = "400px")
+                                         height   = "400px"),
+                              tableOutput("mr_result"),
+                              tableOutput("mr_egg_result")
                     ) # main panel end
       ) # sidebar layout end
     ) # fluid page end
