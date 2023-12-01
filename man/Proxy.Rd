@@ -20,8 +20,8 @@ Proxy(
   pfile,
   outcome_name = NULL,
   outcome_file = NULL,
-  qtl_name = NULL,
-  qtl_file = NULL,
+  qtls = list(),
+  genes_file = NULL,
   proxy_id = NULL
 )
 }

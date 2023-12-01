@@ -30,8 +30,8 @@ Proxy <- function(drug_name,
                   pfile,
                   outcome_name = NULL,
                   outcome_file = NULL,
-                  qtl_name     = NULL,
-                  qtl_file     = NULL,
+                  qtls         = list(),
+                  genes_file   = NULL,
                   proxy_id     = NULL) {
 
   s <- structure(
@@ -52,26 +52,41 @@ Proxy <- function(drug_name,
       pfile          = pfile,
       outcome_name   = outcome_name,
       outcome_file   = outcome_file,
-      qtl_name       = qtl_name,
-      qtl_file       = qtl_file),
+      qtls           = qtls,
+      genes_file     = genes_file),
     class = "Proxy"
   )
 
   return(s)
 }
 
-# curate a list of defaults
+# curate a list of defaults here
 DRUG_PROXIES <- list(
   Proxy(proxy_id      = "GLP1R - Heart failure incidence",
         drug_name     = "incretins",
         gene_name     = "GLP1R",
-        exposure_name = "HbA1c (Jurgens, 2022)",
-        exposure_file = "hba1c_jurgens_2022_gwas.tsv.gz",
-        gene_chr="6", gene_start=39016574, gene_end=39055519, gene_flanks_kb=250, clump_p1=5e-8, clump_p2=1, clump_r2=0.001, clump_kb=250,
-        pfile         = "glp1r.pgen",
-        outcome_name  = "Heart failure incidence (Shah, 2020)",
-        outcome_file  = "heartfailure_shah_2020_gwas.tsv.gz")
+        exposure_name = "GLP1R/HbA1c (Jurgens, 2022)",
+        exposure_file = "GLP1R/hba1c_jurgens_2022_gwas.tsv.gz",
+        gene_chr      ="6",
+        gene_start    = 39016574,
+        gene_end      = 39055519,
+        gene_flanks_kb= 250,
+        clump_p1      = 5e-8,
+        clump_p2      = 1,
+        clump_r2      = 0.001,
+        clump_kb      = 250,
+        pfile         = "GLP1R/glp1r.pgen",
+        outcome_name  = "GLP1R/Heart failure incidence (Shah, 2020)",
+        outcome_file  = "GLP1R/heartfailure_shah_2020_gwas.tsv.gz",
+        qtls          = list("GTEx_v8" = "GLP1R/glp1r_gtex.tsv.gz"),
+        genes_file    = "GLP1R/glp1r_gtex_genes.tsv.gz"
+        )
 )
 
 # set the names of the list to the gene drug - name
 names(DRUG_PROXIES) <- sapply(DRUG_PROXIES, function(x) paste0(x$proxy_id))
+
+
+
+
+

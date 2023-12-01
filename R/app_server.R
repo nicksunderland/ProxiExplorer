@@ -4,6 +4,7 @@
 # silence R CMD checks
 BETA_exposure <- BETA_outcome <- BP <- BP_exposure <- CHR <- P <- P_cat <- NULL
 P_exposure <- RSID_exposure <- SE_exposure <- SE_outcome <- index <- RSID <- NULL
+tissue <- BP_b37 <- i.P <- x <- y <- NULL
 
 #' The application server-side
 #'
@@ -19,14 +20,19 @@ app_server <- function(input, output, session) {
 
   # reactive values
   # global DRUG_PROXIES object, with default genes and settings, created in class_proxy.R
+  # paths
   exposure_filepath <- reactiveVal(NULL)
   outcome_filepath  <- reactiveVal(NULL)
+  qtl_filepath      <- reactiveVal(NULL)
+  gene_filepath     <- reactiveVal(NULL)
   pfile             <- reactiveVal(NULL)
+  # data.tables
   exposure_dat      <- reactiveVal(NULL)
   outcome_dat       <- reactiveVal(NULL)
   clumped_dat       <- reactiveVal(NULL)
   harmonised_dat    <- reactiveVal(NULL)
   qtl_dat           <- reactiveVal(NULL)
+  genes_dat         <- reactiveVal(NULL)
 
   # observe the import data button
   observeEvent(input$import, {
@@ -56,7 +62,7 @@ app_server <- function(input, output, session) {
     exposure_dat(d)
 
     # TABLE STRUCTURE:
-    #
+    # TODO: document
   })
 
   # observe clump button
@@ -104,7 +110,7 @@ app_server <- function(input, output, session) {
     harmonised_dat(h)
 
     # TABLE STRUCTURE:
-    #
+    # TODO: document
   })
 
   # observe the QTL combo box
@@ -113,21 +119,19 @@ app_server <- function(input, output, session) {
     # check if requested
     if(input$qtl_source == "None") return(NULL)
 
-    # get QTL data
-    # if(input$qtl_source == )
-    # qtl_source <- input$qtl_source
-    # qtl_tissue <- input$qtl_tissue
-    # s <- input$gene_start
-    # e <- input$gene_end
-    # f <- input$gene_flanks_kb * 1000
-    #
-    # # file path checks
-    # if(!file.exists(exposure_filepath())) return(NULL)
-    #
-    #
+    # get and set QTL data
+    qtl_path <- system.file("extdata", DRUG_PROXIES[[input$data_input]]$qtls[[input$qtl_source]], package="ProxiExplorer")
+    d <- data.table::fread(qtl_path)
+    qtl_dat(d)
+
+    # if tissues, update selectInput
+    if("tissue" %in% names(d)) {
+      tissues <- unique(d$tissue)
+      updateSelectInput(session, inputId = "qtl_tissue", selected = "All", choices = c("All", tissues))
+    }
 
     # TABLE STRUCTURE:
-    #
+    # TODO: document
   })
 
 
@@ -136,7 +140,9 @@ app_server <- function(input, output, session) {
   output$locus_plot <- renderPlot({
 
     # check data
-    if(is.null(exposure_dat())) return(NULL)
+    validate(
+      need(!is.null(exposure_dat()), 'No data imported, click the import button')
+    )
 
     # create the locus plot
     p <- ggplot(data    = exposure_dat(),
@@ -145,7 +151,7 @@ app_server <- function(input, output, session) {
       annotate(geom = "rect", xmin=input$gene_start, xmax=input$gene_end, ymin=0, ymax=Inf, fill="blue", alpha = 0.05) +
       theme_classic() +
       labs(x     = paste0("Chromosome ", input$gene_chr, " position"),
-           y     = expression(paste("-log[10]", plain(P))),
+           y     = expression(paste("-log"[10], plain(P))),
            subtitle = input$data_input)
 
     # if there is clumped data, plot
@@ -167,9 +173,11 @@ app_server <- function(input, output, session) {
   output$clumps_plot <- renderPlot({
 
     # check data
-    if(is.null(harmonised_dat())) return(NULL)
+    validate(
+      need(!is.null(harmonised_dat()), 'No data clumped, click the clump button')
+    )
 
-    # create the locus plot
+    # create the clumps plot
     p <- ggplot(data    = harmonised_dat(),
                 mapping = aes(x=BETA_exposure, y=BETA_outcome)) +
       geom_point(aes(color=fct_rev(P_cat), fill=fct_rev(P_cat), alpha=fct_rev(P_cat))) +
@@ -182,7 +190,8 @@ app_server <- function(input, output, session) {
       labs(x = expression('\u03B2'[exposure]),
            y = expression('\u03B2'[outcome]),
            title = paste0("Variant clumps - ", input$data_input),
-           subtitle= "Regression line weighted by 1/SE")
+           subtitle= "Regression line weighted by 1/SE",
+           fill = "Clump")
 
     # show
     return(p)
@@ -192,29 +201,69 @@ app_server <- function(input, output, session) {
   output$qtl_plot <- renderPlot({
 
     # check data
-    if(is.null(qtl_dat())) return(NULL)
+    validate(
+      need(!is.null(qtl_dat()), 'No QTL data loaded, select from the drop down menu')
+    )
 
-    # create the locus plot
-    p <- ggplot(data    = qtl_dat(),
-                mapping = aes(x=BP, y=-log10(P))) +
-      geom_point(color="lightgray") +
+    # filter data if requested
+    if(any(input$qtl_tissue=="All")) {
+      d <- qtl_dat()
+    }else{
+      d <- qtl_dat()[tissue %in% input$qtl_tissue, ]
+    }
+
+    # create the QTL plot
+    p1 <- ggplot(data   = d,
+                mapping = aes(x=BP_b37, y=-log10(P), color=as.factor(tissue))) +
+      geom_point() +
       annotate(geom = "rect", xmin=input$gene_start, xmax=input$gene_end, ymin=0, ymax=Inf, fill="blue", alpha = 0.05) +
       theme_classic() +
       labs(x     = paste0("Chromosome ", input$gene_chr, " position"),
-           y     = expression(paste("-log[10]", plain(P))),
-           subtitle = input$data_input)
+           y     = expression(paste("-log"[10], plain(P))),
+           subtitle = input$qtl_source,
+           color = "Tissue")
 
     # if there is clumped data, plot
     if(!is.null(clumped_dat())) {
-      p <- p +
-        geom_point(data = clumped_dat()[!is.na(clump), ], mapping = aes(x=BP, y=-log10(P), color=clump, fill=clump), shape=23) +
-        geom_vline(data = clumped_dat()[index==TRUE, ],   mapping = aes(xintercept = BP), linetype="dotted", color="darkred") +
-        geom_point(data = clumped_dat()[index==TRUE, ],   mapping = aes(x=BP, y=-log10(P)), size=3, fill="red", color="red", shape=24) +
-        geom_label(data = clumped_dat()[index==TRUE, ],   mapping = aes(label = clump, x = BP, y = -0.5)) +
-        geom_label_repel(data = clumped_dat()[index==TRUE, ], mapping = aes(label = RSID, x = BP, y = -log10(P)))
+
+      # get the clump index hits
+      clump_hits <- clumped_dat()[index==TRUE, ]
+
+      # check if any in the QTL data
+      qtl_hits <- clump_hits[d, on=c("RSID"="RSID_b37"), nomatch=NULL]
+
+      # see if in qtl data
+      if(nrow(qtl_hits) > 0) {
+
+        p1 <- p1 +
+          geom_point(data = qtl_hits, mapping = aes(x=BP_b37, y=-log10(i.P), fill=as.factor(tissue)), shape=24, color="black", size=4) +
+          geom_vline(data = qtl_hits, mapping = aes(xintercept = BP_b37), linetype="dotted", color="darkred") +
+          geom_label(data = qtl_hits, mapping = aes(label = clump, x = BP_b37, y = -0.5), color="black") +
+          geom_label_repel(data = qtl_hits, mapping = aes(label = RSID, x = BP_b37, y = max(-log10(d$P), na.rm=T)), color="black", show.legend = FALSE) +
+          labs(fill = "Index clump variant") +
+          theme(legend.position="bottom")
+
+      }
+
     }
 
+    return(p1)
+  })
 
+  # plot the MR
+  output$mr_plot <- renderPlot({
+
+    # check data
+    validate(
+      need(FALSE, 'Next to be implemented')
+    )
+
+    p3 <- ggplot(data = data.frame(x=runif(10), y=runif(10)),
+           mapping = aes(x=x,y=y)) +
+      geom_point() +
+      labs(title="TBC")
+
+    return(p3)
   })
 
   # observing the data input select box
@@ -246,6 +295,10 @@ app_server <- function(input, output, session) {
       updateSliderTextInput(session, inputId = "clump_p2",       selected = DRUG_PROXIES[[input$data_input]]$clump_p2)
       updateSliderTextInput(session, inputId = "clump_r2",       selected = DRUG_PROXIES[[input$data_input]]$clump_r2)
       updateSliderTextInput(session, inputId = "clump_kb",       selected = DRUG_PROXIES[[input$data_input]]$clump_kb)
+      if(length(DRUG_PROXIES[[input$data_input]]$qtls)>0) {
+        updateSelectInput(session,   inputId = "qtl_source",     selected = "None", choices = c("None", names(DRUG_PROXIES[[input$data_input]]$qtls)))
+      }
+
 
     }
   })

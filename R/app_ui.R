@@ -130,11 +130,13 @@ app_ui <- function(request) {
                               fluidRow(
                                 column(2, selectInput(inputId  = "qtl_source",
                                                       label    = "QTL data:",
-                                                      choices  = c("None", "GTEx_v8"),
+                                                      choices  = c("None"),
                                                       selected = "None")),
-                                column(2, selectInput(inputId  = "qtl_tissue",
+                                column(4, selectizeInput(inputId  = "qtl_tissue",
                                                       label    = "Tissue:",
                                                       choices  = c("All"),
+                                                      multiple = TRUE,
+                                                      options  = list(plugins= list('remove_button')),
                                                       selected = "All"))
                               ),
                               plotOutput(outputId = "qtl_plot",
