@@ -323,7 +323,10 @@ app_server <- function(input, output, session) {
     )
 
     p   <- TwoSampleMR::mr_scatter_plot(tsmr_res(), tsmr_harm())[[1]] +
-      theme_classic()
+      theme_classic() +
+      geom_label_repel(mapping = aes(label = SNP, x = beta.exposure, y = beta.outcome), color="black", show.legend = FALSE)
+
+
 
     return(p)
   })
