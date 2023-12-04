@@ -23,14 +23,14 @@ chr6_gtex <- fread("/Users/xx20081/Documents/local_data/gtex_v8/gtex_v8_chr6.tsv
 gene_win <- chr6_gtex[BP_b37 >= gene_start_pos-gene_flanks_kb &
                       BP_b37 <= gene_end_pos+gene_flanks_kb &
                       CHR==gene_chrom, ]
-fwrite(gene_win, "/Users/xx20081/git/ProxiExplorer/inst/extdata/glp1r_gtex.tsv.gz", sep="\t")
+fwrite(gene_win, "/Users/xx20081/git/ProxiExplorer/inst/extdata/GLP1R/glp1r_gtex.tsv.gz", sep="\t")
 
 # 3) GTEx gene data
 chr6_gtex_gene <- fread("/Users/xx20081/Documents/local_data/gtex_v8/gtex_v8_genes.tsv.gz")
-genes_win <- chr6_gtex_gene[gene_start >= gene_start_pos-gene_flanks_kb &
-                            gene_end <= gene_end_pos+gene_flanks_kb &
+genes_win <- chr6_gtex_gene[gene_start_b37 >= gene_start_pos-gene_flanks_kb &
+                            gene_end_b37 <= gene_end_pos+gene_flanks_kb &
                             gene_chr==as.character(gene_chrom), ]
-fwrite(genes_win, "/Users/xx20081/git/ProxiExplorer/inst/extdata/glp1r_gtex_genes.tsv.gz", sep="\t")
+fwrite(genes_win, "/Users/xx20081/git/ProxiExplorer/inst/extdata/GLP1R/glp1r_gtex_genes.tsv.gz", sep="\t")
 
 # 4) The plink reference
 # cut the plink reference using ?extract command - need to relook up what I did; but essentially just chop out

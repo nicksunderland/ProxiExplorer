@@ -30,6 +30,10 @@ Proxy(
 
 \item{gene_name}{.}
 
+\item{exposure_name}{.}
+
+\item{exposure_file}{.}
+
 \item{gene_chr}{.}
 
 \item{gene_start}{.}
@@ -45,6 +49,18 @@ Proxy(
 \item{clump_r2}{.}
 
 \item{clump_kb}{.}
+
+\item{pfile}{.}
+
+\item{outcome_name}{.}
+
+\item{outcome_file}{.}
+
+\item{qtls}{.}
+
+\item{genes_file}{.}
+
+\item{proxy_id}{.}
 }
 \value{
 a Proxy S3 object

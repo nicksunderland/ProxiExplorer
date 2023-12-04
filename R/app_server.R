@@ -5,6 +5,7 @@
 BETA_exposure <- BETA_outcome <- BP <- BP_exposure <- CHR <- P <- P_cat <- NULL
 P_exposure <- RSID_exposure <- SE_exposure <- SE_outcome <- index <- RSID <- NULL
 tissue <- BP_b37 <- i.P <- x <- y <- RSID_outcome <- pheno <- NULL
+SNP <- beta.exposure <- beta.outcome <- gene_chr <- gene_end_b37 <- gene_name <- gene_start_b37 <- strand <- NULL
 
 #' The application server-side
 #'
@@ -51,6 +52,7 @@ app_server <- function(input, output, session) {
     #########
 
     d <- genepi.utils::standardise_gwas(exposure_filepath(), input_format="default")
+    genes <- data.table::fread(gene_filepath())
 
     #########
     cat(file=stderr(), utils::str(d), "\n")
@@ -58,10 +60,13 @@ app_server <- function(input, output, session) {
 
     # TODO: column and data checks here
     d <- d[CHR==c & BP>=s-f & BP<=e+f, ]
+    genes <- genes[gene_chr==as.character(c) & gene_end_b37>=s-f & gene_start_b37<=e+f, ]
+
     # calculate needed things
     d[, P_cat := cut(P, breaks=c(1,5e-2,5e-4,5e-5,5e-6,5e-8,5e-100))]
     # set the data
     exposure_dat(d)
+    genes_dat(genes)
 
     # TABLE STRUCTURE:
     # TODO: document
@@ -209,15 +214,33 @@ app_server <- function(input, output, session) {
       need(!is.null(exposure_dat()), 'No data imported, click the import button')
     )
 
+    # colors
+    color_list = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+
     # create the locus plot
     p <- ggplot(data    = exposure_dat(),
                 mapping = aes(x=BP, y=-log10(P))) +
       geom_point(color="lightgray") +
       annotate(geom = "rect", xmin=input$gene_start, xmax=input$gene_end, ymin=0, ymax=Inf, fill="blue", alpha = 0.05) +
+      geom_rect(data = genes_dat()[strand=="+", ],
+                inherit.aes=FALSE,
+                mapping = aes(xmin=gene_start_b37, xmax=gene_end_b37, ymin=-1.75, ymax=-1.25), fill="grey", alpha=0.3) +
+      geom_rect(data = genes_dat()[strand=="-", ],
+                inherit.aes=FALSE,
+                mapping = aes(xmin=gene_start_b37, xmax=gene_end_b37, ymin=-2.5, ymax=-2), fill="grey", alpha=0.3) +
+      geom_text_repel(data = genes_dat()[strand=="-", ],
+                      mapping = aes(label = gene_name, x=(gene_end_b37-gene_start_b37)/2 + gene_start_b37, y =-2.25),
+                      direction = "x") +
+      geom_text_repel(data = genes_dat()[strand=="+", ],
+                      mapping = aes(label = gene_name, x=(gene_end_b37-gene_start_b37)/2 + gene_start_b37, y =-1.5),
+                      direction = "x") +
+      geom_hline(yintercept = 0) +
       theme_classic() +
       labs(x     = paste0("Chromosome ", input$gene_chr, " position"),
            y     = expression(paste("-log"[10], plain(P))),
            subtitle = input$data_input)
+
+
 
     # if there is clumped data, plot
     if(!is.null(clumped_dat())) {
@@ -389,6 +412,7 @@ app_server <- function(input, output, session) {
       # get & set the defaults
       exposure_filepath(     system.file("extdata", DRUG_PROXIES[[input$data_input]]$exposure_file, package="ProxiExplorer"))
       outcome_filepath(      system.file("extdata", DRUG_PROXIES[[input$data_input]]$outcome_file,  package="ProxiExplorer"))
+      gene_filepath(         system.file("extdata", DRUG_PROXIES[[input$data_input]]$genes_file,    package="ProxiExplorer"))
       pfile(sub(".pgen", "", system.file("extdata", DRUG_PROXIES[[input$data_input]]$pfile,         package="ProxiExplorer")))
       updateSelectInput(session,     inputId = "gene_chr",       selected = DRUG_PROXIES[[input$data_input]]$gene_chr)
       updateNumericInput(session,    inputId = "gene_flanks_kb", value    = DRUG_PROXIES[[input$data_input]]$gene_flanks_kb)
