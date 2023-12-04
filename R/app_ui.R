@@ -127,7 +127,9 @@ app_ui <- function(request) {
                               # Exposure locus zoom plot
                               p(strong("Locus plot:")),
                               plotOutput(outputId = "locus_plot",
-                                         height   = "400px"),
+                                         height   = "400px",
+                                         brush = "locus_plot_brush"),
+                              tableOutput("locus_plot_table"),
                               # Clump analysis
                               p(strong("Clumps:")),
                               plotOutput(outputId = "clumps_plot",

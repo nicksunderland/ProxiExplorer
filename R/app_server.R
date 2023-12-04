@@ -60,6 +60,7 @@ app_server <- function(input, output, session) {
 
     # TODO: column and data checks here
     d <- d[CHR==c & BP>=s-f & BP<=e+f, ]
+    d[, log10p := -log10(P)]
     genes <- genes[gene_chr==as.character(c) & gene_end_b37>=s-f & gene_start_b37<=e+f, ]
 
     # calculate needed things
@@ -219,7 +220,7 @@ app_server <- function(input, output, session) {
 
     # create the locus plot
     p <- ggplot(data    = exposure_dat(),
-                mapping = aes(x=BP, y=-log10(P))) +
+                mapping = aes(x=BP, y=log10p)) +
       geom_point(color="lightgray") +
       annotate(geom = "rect", xmin=input$gene_start, xmax=input$gene_end, ymin=0, ymax=Inf, fill="blue", alpha = 0.05) +
       geom_rect(data = genes_dat()[strand=="+", ],
@@ -254,6 +255,16 @@ app_server <- function(input, output, session) {
 
     # plot
     return(p)
+  })
+
+  # table for brushed (selected) points
+  output$locus_plot_table <- renderTable({
+    bp <- brushedPoints(exposure_dat(), input$locus_plot_brush)
+    if(is.null(bp) || nrow(bp)==0) {
+      return(NULL)
+    } else {
+      return(bp)
+    }
   })
 
 
